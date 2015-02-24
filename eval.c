@@ -82,7 +82,7 @@ void eval(char *cmdline, jobsT *jobs)
 	  else
 	    putJobInBG(pid, jobs);
 	}
-      else if(!strcmp(argv[0], "wait")
+      else if(!strcmp(argv[0], "wait"))
 	{
 
 	  while (jobs->taille > 0 || allStopped(jobs) == 0)
@@ -92,6 +92,15 @@ void eval(char *cmdline, jobsT *jobs)
 	  if(jobs->taille > 0)
 	    printJob(*jobs);
 	  fflush(stdout);
+	}
+      if(argv[1] != NULL)
+	{
+	  if(!strcmp(argv[0], "setenv"))
+	    {
+	      char[] var = split(argv[1],"=");
+	      if(setenv(var[0], var[1], 1) == -1)
+		printf("setenv a été mal utilisé(vérifier que votre variable d'environement existe");
+	    }
 	}
     }
   return;
@@ -107,8 +116,9 @@ int builtin_command(char **argv)
     }
   if (!strcmp(argv[0], "&"))    // ignorer & tout seul
     return 1;
-  if (!strcmp(argv[0], "jobs") || !strcmp(argv[0], "fg") || !strcmp(argv[0], "bg") || !strcmp(argv[0], "stop")|| !strcmp(argv[0], "wait"))
-    return 1; 
+  if (!strcmp(argv[0], "jobs") || !strcmp(argv[0], "fg") || !strcmp(argv[0], "bg") || !strcmp(argv[0], "stop")|| !strcmp(argv[0], "wait") 
+      || !strcmp(argv[0], "setenv")|| !strcmp(argv[0], "unsetenv") || !strcmp(argv[0], "echo"))
+    return 1; // commande interne
 
   return 0;                     // ce n'est pas une commande integree
 }
