@@ -2,7 +2,6 @@
 #include "myshell.h"
 #include "jobs.h"
 
-
 // fonctions externes
 int parseline(char *buf, char **argv);
 int builtin_command(char **argv);
@@ -26,7 +25,17 @@ void eval(char *cmdline, jobsT *jobs)
       if ((pid = Fork()) == 0)
 	{   
 
-	  setpgid(pid,pid);
+	  setpgid(pid,pid);/*
+	  char *buf = malloc(strlen(argv[1]) -1);
+	  int i;
+	  for(i = 1; i < strlen(argv[1]); i++)
+	    buf[i-1] = argv[1][i];
+	  // un  décalage de l'indice existe entre l'affichage et l'implémentation d'où la présence du -1
+	  pid = searchPIDWithInd(atoi(buf)-1, jobs);
+	  char *str;
+	  itoa(pid, str, 10);
+	  argv[1] = malloc(sizeof(strlen(str)));
+	  strcpy(argv[1], str);	    */
 	  if (execvp(argv[0], argv) < 0)
 	    {
 	      printf("%s: Command not found.\n", argv[0]);
@@ -53,6 +62,25 @@ void eval(char *cmdline, jobsT *jobs)
     }
   else // si oui, executee directement
     {
+      
+      if(!strcmp(argv[0], "setenv"))
+	{
+	  if(argv[1] != NULL)
+	    {
+	      /* char *var = strtok(argv[1],"=");
+		 if(setenv(var[0], var[1], 1) == -1)
+		 printf("setenv a été mal utilisé(vérifier que votre variable d'environement existe");*/
+	      putenv(argv[1]);
+	    }
+	}
+      else if(!strcmp(argv[0], "unsetenv"))
+	{
+	  if(argv[1] != NULL)
+	    {
+	      unsetenv(argv[1]);
+	    }
+	}
+
       if(!strcmp(argv[0], "jobs"))
 	printJob(*jobs);
       else if(!strcmp(argv[0], "fg") || !strcmp(argv[0], "bg")|| !strcmp(argv[0], "stop"))
@@ -93,15 +121,8 @@ void eval(char *cmdline, jobsT *jobs)
 	    printJob(*jobs);
 	  fflush(stdout);
 	}
-      if(argv[1] != NULL)
-	{
-	  if(!strcmp(argv[0], "setenv"))
-	    {
-	      char[] var = split(argv[1],"=");
-	      if(setenv(var[0], var[1], 1) == -1)
-		printf("setenv a été mal utilisé(vérifier que votre variable d'environement existe");
-	    }
-	}
+      
+      
     }
   return;
 }
@@ -117,7 +138,7 @@ int builtin_command(char **argv)
   if (!strcmp(argv[0], "&"))    // ignorer & tout seul
     return 1;
   if (!strcmp(argv[0], "jobs") || !strcmp(argv[0], "fg") || !strcmp(argv[0], "bg") || !strcmp(argv[0], "stop")|| !strcmp(argv[0], "wait") 
-      || !strcmp(argv[0], "setenv")|| !strcmp(argv[0], "unsetenv") || !strcmp(argv[0], "echo"))
+      || !strcmp(argv[0], "setenv")|| !strcmp(argv[0], "unsetenv"))
     return 1; // commande interne
 
   return 0;                     // ce n'est pas une commande integree
